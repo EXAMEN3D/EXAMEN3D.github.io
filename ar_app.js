@@ -5,9 +5,9 @@ let scene, camera, renderer, clock, deltaTime, totalTime;
 
 let arToolkitSource, arToolkitContext;
 
-let mesh1, mesh2;
+let mesh1, mesh2, mesh4, mesh5, mesh6;
 
-let markerRoot1,markerRoot2;
+let markerRoot1,markerRoot2, marker1, marker2, markerRoot6;
 
 let RhinoMesh, RhinoMesh2;
 
@@ -21,8 +21,20 @@ let objects = []; //guarda los objetos que quiero detectar
 
 let video1;
 
-init(); // llamado de la funcion principal que se encarga de hacer casi  todo en la app
-animate();
+let sprite4;
+
+let canvas1, context1, texture1;
+
+
+///////////////FUNCIONES////////////////////////////
+//funcion principal 
+function main() {
+    init();
+    animate();
+}
+
+//ejecutamos la app llamando a main 
+main(); //llamado a la funcion main 
 
 function init() {
     ////////////////////////////////////////////////////////
@@ -42,13 +54,7 @@ function init() {
     light.shadow.mapSize.height = 4096;// resolucion mapa de sombras alto
 
     
-    
     scene.add(light); //agrego la luz a mi escena 
-
-    camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 10000);
-//agrego la camara a mi escena 
-    scene.add(camera);
-    raycaster = new THREE.Raycaster();
 
     let lightSphere = new THREE.Mesh(
         new THREE.SphereGeometry(0.1),
@@ -67,7 +73,10 @@ function init() {
     scene.add(ambientLight); //agrego la luz a mi escena. 
 
     
-    
+    camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 10000);
+//agrego la camara a mi escena 
+    scene.add(camera);
+    raycaster = new THREE.Raycaster();
 
     //permite mostrar las cosas en 3d en la pantalla
     renderer = new THREE.WebGLRenderer({
@@ -125,6 +134,9 @@ function init() {
     arToolkitContext.init(function onCompleted() {
         camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
     });
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
     /////////////////////////////////////////////////
     //Marker setup
@@ -137,7 +149,7 @@ function init() {
     //Creamos nuestro marcador 
     let markerControl = new THREEx.ArMarkerControls(arToolkitContext, markerRoot1, {
 
-        type: 'pattern', patternUrl: './data/pattern-Z1.patt',
+        type: 'pattern', patternUrl: 'data/pattern-Z1.patt',
     });
 
 
@@ -148,11 +160,109 @@ function init() {
     //Creamos nuestro marcador 
     let markerContro2 = new THREEx.ArMarkerControls(arToolkitContext, markerRoot2, {
 
-        type: 'pattern', patternUrl: './data/pattern-Z5.patt',
+        type: 'pattern', patternUrl: 'data/pattern-Z5.patt',
     });
+///////////////////// maca que no es maca/////////////
+
+markerRoot6 = new THREE.Group();
+	scene.add(markerRoot6);
+	let markerControls6 = new THREEx.ArMarkerControls(arToolkitContext, markerRoot6, {
+		type: 'pattern', patternUrl: "data/z2.patt",
+	})
+
+	/// VIDEO
+
+	let geometry6 =  new THREE.PlaneGeometry(3,2);
+
+	video1 =  document.getElementById('video1');
+	let texture =  new THREE.VideoTexture(video1);
+	texture.minFilter =  THREE.LinearFilter;
+	texture.magFilter = THREE.LinearFilter;
+	texture.format =  THREE.RGBFormat;
+	video1.pause();
+	
+	let material6 =  new THREE.MeshBasicMaterial({map: texture});
+	mesh6 =  new THREE.Mesh(geometry6, material6);
+	mesh6.name= "video";
+	mesh6.rotation.x =  -Math.PI/2;
+	markerRoot6.add(mesh6);
+	objects.push(mesh6);
+
+
+    //// MARCADORES PATO/// LOS QUE ESTAN BIEN HECHOS
+
+
+    //Marcador 1
+    marker1 = new THREE.Group();
+    marker1.name = 'marker1';
+    scene.add(marker1); //agregamos el marcador a la escena 
+
+    let markerControls4 = new THREEx.ArMarkerControls(arToolkitContext, marker1, {
+        type: 'pattern',
+        patternUrl: "data/z3.patt",
+    })
+
+    //Marcador 2
+    marker2 = new THREE.Group();
+    marker2.name = 'marker2';
+    scene.add(marker2); //agregamos el marcador a la escena 
+
+    let markerControls5 = new THREEx.ArMarkerControls(arToolkitContext, marker2, {
+        type: 'pattern',
+        patternUrl: "data/z4.patt",
+    })
+
+
+
     /////////////////////////////////////////////////
     //GEOMETRY
     /////////////////////////////////////////////////
+    ////////////GEOMETRIAS//////////////////////////////////////
+
+    //paso 1 - creo geometria 
+    let box4 = new THREE.CubeGeometry(1, .5, .5); //plantilla para crear geometrias cubo
+
+    //Paso 2 - creo materiales
+    //material 1
+    let loader =  new THREE.TextureLoader();
+
+    let texture10 =  loader.load('./images/lamina1.jpg');
+    
+    let matBox04 = new THREE.MeshLambertMaterial(
+        {
+            map: texture10,
+            color: Math.random() * 0xffffff,
+            side: THREE.DoubleSide
+        }
+    );
+
+    //material 2
+    let texture11 =  loader.load('./images/lamina2.jpg');
+    let matBox05 = new THREE.MeshLambertMaterial(
+        {
+            map: texture11,
+            color: Math.random() * 0xffffff,
+            side: THREE.DoubleSide
+        }
+    );
+
+    //paso 3 - Creo Meshes
+
+    //mesh1
+    mesh4 = new THREE.Mesh(box4, matBox04);
+    mesh4.position.y = .25;
+    mesh4.name = 'Elevaciones del proyecto, con sus medidas respectivas'; //mensaje a mostrar cuando indicamos el mesh con nuestro mouse
+
+    //mesh2
+    mesh5 = new THREE.Mesh(box4, matBox05);
+    mesh5.position.y = .25;
+    //mesh2.position.x = -.6;
+    mesh5.name = 'detalles constructivos que unen cada pieza de la estructura'; //mensaje a mostrar cuando indicamos el mesh con nuestro mouse
+
+
+////////////PA ARRIBA GEOMETRIA PATO///////////////// LA MEJOR
+
+
 
     //Creo una geometria cubo
     //-//-//let geo1 = new THREE.CubeGeometry(.75, .75, .75); // crear la plantilla
@@ -314,6 +424,24 @@ function init() {
     sprite2 = new THREE.Sprite(spriteMaterial);
     sprite2.scale.set(2, 2, 2);
     sprite2.position.set(10, 10, 0);
+    
+    ////sprite pato////
+
+    
+    //creacion del sprite
+    var spriteMaterial = new THREE.SpriteMaterial(
+        {
+            map: texture1
+        }
+    )
+    sprite4 = new THREE.Sprite(spriteMaterial);
+    sprite4.scale.set(1, 0.5, 1);
+    //sprite1.position.set(5, 5, 0);
+
+     ////////////AGREGAMOS OBJETOS A ESCeNA Y ARRAY OBJECTS
+     objects.push(mesh4);
+    
+     objects.push(mesh5);
 
 
     ////////////AGREGAMOS OBJETOS A ESCeNA Y ARRAY OBJECTS
@@ -332,6 +460,13 @@ function init() {
 
 
     markerRoot2.add(sprite2);
+     //agregamos nuestros objetos a la escena mediante el objeto marker1
+
+     marker1.add(mesh4);
+     marker1.add(sprite4);
+ 
+     marker2.add(mesh5);
+     marker2.add(sprite4);
 
     //////////EVENT LISTERNERS/////////////////////////////////
     document.addEventListener('mousemove', onDocumentMouseMove, false);// detecta movimiento del mouse
@@ -348,7 +483,9 @@ function onDocumentMouseMove(event) {
     sprite2.position.set((event.clientX / window.innerWidth) * 2 - 1, - (event.clientY / window.innerHeight) * 2 + 1, 0);
     sprite2.renderOrder = 999;
     sprite2.onBeforeRender = function (renderer) { renderer.clearDepth(); }
-
+    sprite4.position.set((event.clientX / window.innerWidth) * 2 - 1, - (event.clientY / window.innerHeight) * 2 + 1, 0);
+    sprite4.renderOrder = 999;
+    sprite4.onBeforeRender = function (renderer) { renderer.clearDepth(); }
 
     mouse.set((event.clientX / window.innerWidth) * 2 - 1, - (event.clientY / window.innerHeight) * 2 + 1); //mouse pos
 
@@ -375,11 +512,11 @@ function onDocumentMouseMove(event) {
                 context1.fillRect(2, 2, width + 4, 20 + 4);
                 context1.fillStyle = "rgba(0,0,0,1)"; // text color
                 context1.fillText(message, 4, 20);
-            
+                texture1.needsUpdate = true;
             }
             else {
                 context1.clearRect(0, 0, 10, 10);
-            
+                texture1.needsUpdate = true;
             }
         }
     }
@@ -390,9 +527,34 @@ function onDocumentMouseMove(event) {
         }
         INTERSECTED = null;
         context1.clearRect(0, 0, 300, 300);
-    
+        texture1.needsUpdate = true;
     }
 }
+
+//// maca no maca////
+function onDocumentMouseMove(event) {
+    event.preventDefault();
+    mouse.set((event.clientX / window.innerWidth) * 2 - 1, - (event.clientY / window.innerHeight) * 2 + 1); //mouse pos
+    raycaster.setFromCamera(mouse, camera); //creo el rayo que va desde la camara , pasa por el frustrum 
+    let intersects = raycaster.intersectObjects(objects, true); //buscamos las intersecciones
+
+    if (intersects.length > 0) {
+        if (intersects[0].object != INTERSECTED) {
+            if (INTERSECTED) {
+             
+            }
+            INTERSECTED = intersects[0].object;		
+			
+			video1.play();
+
+			console.log("intersected");
+
+        }
+
+    }
+
+}
+
 
 function update() {
     //actualiza contenido de nuestra app AR
