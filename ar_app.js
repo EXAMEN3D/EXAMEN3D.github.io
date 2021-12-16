@@ -7,7 +7,7 @@ let arToolkitSource, arToolkitContext;
 
 let mesh1, mesh2;
 
-let markerRoot1;
+let markerRoot1,markerRoot2;
 
 let RhinoMesh, RhinoMesh2;
 
@@ -20,9 +20,6 @@ let INTERSECTED; //guarda info sobre los objetos intersectados por mi raycast
 let objects = []; //guarda los objetos que quiero detectar
 
 let video1;
-
-
-
 
 init(); // llamado de la funcion principal que se encarga de hacer casi  todo en la app
 animate();
@@ -48,6 +45,11 @@ function init() {
     
     scene.add(light); //agrego la luz a mi escena 
 
+    camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 10000);
+//agrego la camara a mi escena 
+    scene.add(camera);
+    raycaster = new THREE.Raycaster();
+
     let lightSphere = new THREE.Mesh(
         new THREE.SphereGeometry(0.1),
         new THREE.MeshBasicMaterial({
@@ -64,8 +66,8 @@ function init() {
     let ambientLight = new THREE.AmbientLight(0xcccccc); //creo las luz
     scene.add(ambientLight); //agrego la luz a mi escena. 
 
-    camera = new THREE.Camera(); //creo objeto camara 
-    scene.add(camera); // agrego camara a la escena
+    
+    
 
     //permite mostrar las cosas en 3d en la pantalla
     renderer = new THREE.WebGLRenderer({
@@ -138,6 +140,16 @@ function init() {
         type: 'pattern', patternUrl: './data/pattern-Z1.patt',
     });
 
+
+    markerRoot2 = new THREE.Group(); //creamos un grupo de objetos
+    markerRoot2.name = 'marker2';
+    scene.add(markerRoot2); // agregamos el grupo a la escena. 
+
+    //Creamos nuestro marcador 
+    let markerContro2 = new THREEx.ArMarkerControls(arToolkitContext, markerRoot2, {
+
+        type: 'pattern', patternUrl: './data/pattern-Z5.patt',
+    });
     /////////////////////////////////////////////////
     //GEOMETRY
     /////////////////////////////////////////////////
@@ -155,19 +167,32 @@ function init() {
     //////////////MESH1//////////////////////////////////////////
     //creo un mesh con la geometria y el material 
     //-//-//mesh1 = new THREE.Mesh(geo1, material1); //nuestro mesh 
-    mesh1 = new THREE.Mesh(RhinoMesh); //nuestro mesh 
+    let box = new THREE.CubeGeometry(.5, .5, .5);
+
+    let matBox01 = new THREE.MeshLambertMaterial(
+        {
+            color: Math.random() * 0xffffff,
+            side: THREE.DoubleSide
+        }
+    );
+    
+    //material 2
+    let matBox02 = new THREE.MeshLambertMaterial(
+        {
+            color: Math.random() * 0xffffff,
+            side: THREE.DoubleSide
+        }
+    );
+
+    mesh1 = new THREE.Mesh(box,matBox01); //nuestro mesh 
+    mesh1.name = 'Parasol';
+    mesh1.position.y = 0.25;
 
 
+    mesh2 = new THREE.Mesh(box,matBox02); //nuestro mesh 
+    mesh2.name = 'Iteración';
+    mesh2.position.y = 0.25;
 
-    mesh1.name = 'mesh1'; //mensaje a mostrar cuando indicamos el mesh con nuestro mouse
-    //activo el recibir y proyectar sombras en otros meshes
-    //CAMBIO LA POSICION DE MI MESH 
-    mesh1.position.y = 0.5;
-    mesh1.position.z = -0.3;
-
-    //activo el recibir y proyectar sombras en otros meshes
-    mesh1.castShadow = true;
-    mesh1.receiveShadow = true;
 
     //////////////MESH2//////////////////////////////////////////
     //creo un mesh con la geometria y el material 
@@ -217,7 +242,23 @@ function init() {
                     markerRoot1.add(RhinoMesh);
                 }, onProgress, onError);
         });
+    new THREE.MTLLoader ()
+        .setPath('models/')
+        .load('mod2.mtl', function (materials) {
+            materials.preload();
+            new THREE.OBJLoader()
+                .setMaterials(materials)
+                .setPath('models/')
+                .load('mod2.obj', function (group) {
+                    RhinoMesh = group.children[0];
+                    RhinoMesh.material.side = THREE.DoubleSide;
+                    RhinoMesh.scale.set(0.003,0.003, 0.003);
+                    RhinoMesh.castShadow = true;
+                    RhinoMesh.receiveShadow = true;
 
+                    markerRoot2.add(RhinoMesh);
+                }, onProgress, onError);
+        });
     // //////OBJETO RHINO 2///////////////
     // new THREE.MTLLoader()
     //     .setPath('models/')
@@ -251,9 +292,10 @@ function init() {
     //CREACION DE CANVAS 
     canvas1 = document.createElement('canvas');
     context1 = canvas1.getContext('2d');
-    context1.font = "Bold 50px Arial";
+    context1.font = "Bold 30px Arial";
     context1.fillStyle = "rgba(0,0,0,0.95)";
-    context1.fillText('PARASOL', 0, 150);
+    context1.fillText('', 0, 150);
+
 
     //los contenidos del canvas seran usados como textura 
     texture1 = new THREE.Texture(canvas1);
@@ -266,24 +308,30 @@ function init() {
         }
     )
     sprite1 = new THREE.Sprite(spriteMaterial);
-    sprite1.scale.set(1, 1.5, 1);
-    //sprite1.position.set(5, 5, 0);
+    sprite1.scale.set(2, 1, 2);
+    sprite1.position.set(10, 10, 0);
+
+    sprite2 = new THREE.Sprite(spriteMaterial);
+    sprite2.scale.set(2, 2, 2);
+    sprite2.position.set(10, 10, 0);
 
 
     ////////////AGREGAMOS OBJETOS A ESCeNA Y ARRAY OBJECTS
     
     objects.push(mesh1);
+
+    objects.push(mesh2);
     
     // - objects.push(mesh2);
 
 
     //agregamos nuestros objetos a la escena mediante el objeto marker1
 
-    markerRoot1.add(mesh1);
+
     markerRoot1.add(sprite1); //-//-//-//
 
-    // - marker2.add(mesh2);
-    // - marker2.add(sprite1);
+
+    markerRoot2.add(sprite2);
 
     //////////EVENT LISTERNERS/////////////////////////////////
     document.addEventListener('mousemove', onDocumentMouseMove, false);// detecta movimiento del mouse
@@ -297,12 +345,16 @@ function onDocumentMouseMove(event) {
     sprite1.position.set((event.clientX / window.innerWidth) * 2 - 1, - (event.clientY / window.innerHeight) * 2 + 1, 0);
     sprite1.renderOrder = 999;
     sprite1.onBeforeRender = function (renderer) { renderer.clearDepth(); }
+    sprite2.position.set((event.clientX / window.innerWidth) * 2 - 1, - (event.clientY / window.innerHeight) * 2 + 1, 0);
+    sprite2.renderOrder = 999;
+    sprite2.onBeforeRender = function (renderer) { renderer.clearDepth(); }
+
 
     mouse.set((event.clientX / window.innerWidth) * 2 - 1, - (event.clientY / window.innerHeight) * 2 + 1); //mouse pos
 
     raycaster.setFromCamera(mouse, camera); //creo el rayo que va desde la camara , pasa por el frustrum 
     let intersects = raycaster.intersectObjects(objects, true); //buscamos las intersecciones
-    console.log(objects)
+
     if (intersects.length > 0) {
         if (intersects[0].object != INTERSECTED) {
             if (INTERSECTED) {
@@ -314,25 +366,22 @@ function onDocumentMouseMove(event) {
 
             if (INTERSECTED.name) {
                 context1.clearRect(0, 0, 10, 10);
-                let message = 'PARASOL' + INTERSECTED.name;
+                let message = INTERSECTED.name;
                 let metrics = context1.measureText(message);
                 let width = metrics.width;
-                let height = metrics.height;
                 context1.fillStyle = "rgba(0,0,0,0.95)"; // black border
-                context1.fillRect(0, 0, width + 208, 20 + 8);
-                
+                context1.fillRect(0, 0, width + 8, 20 + 8);
                 context1.fillStyle = "rgba(255,255,255,0.95)"; // white filler
-                context1.fillRect(2, 2, width + 204, 20 + 4);
+                context1.fillRect(2, 2, width + 4, 20 + 4);
                 context1.fillStyle = "rgba(0,0,0,1)"; // text color
                 context1.fillText(message, 4, 20);
-                texture1.needsUpdate = true;
+            
             }
             else {
-                context1.clearRect(0, 0, 0, 10);
-                texture1.needsUpdate = true;
+                context1.clearRect(0, 0, 10, 10);
+            
             }
         }
-
     }
     //si no encuentra intersecciones
     else {
@@ -341,29 +390,9 @@ function onDocumentMouseMove(event) {
         }
         INTERSECTED = null;
         context1.clearRect(0, 0, 300, 300);
-        texture1.needsUpdate = true;
+    
     }
-
-
-
-
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 function update() {
     //actualiza contenido de nuestra app AR
